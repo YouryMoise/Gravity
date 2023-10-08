@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<body>
+<canvas onclick = "getMouse(event)" id = "canvas" height = "500" width = "700" style = "border-style:solid;"></canvas>
+
+
+<script>
+let c = document.getElementById("canvas");
+let ctx = c.getContext('2d');
+
+let squareLeft = 0;
+let squareTop = 0;
+ctx.fillRect(squareLeft,squareTop,100,100);
+let diving;
+let hitLeft = 200;
+ctx.fillRect(hitLeft,400,100,100);
+
+function redraw(){
+ctx.fillRect(squareLeft,squareTop,100,100);
+ctx.fillRect(hitLeft,400,100,100);
+if(squareLeft >= hitLeft-100 && squareLeft <= hitLeft-50 && squareTop == 400){
+let bounceRight = setInterval(function(){hitLeft+=2.5*horizSpeed;if(hitLeft>=700){hitLeft = -50;}},100);
+setTimeout(function(){clearInterval(bounceRight);}, 500);
+};
+if(squareLeft <= hitLeft+100 && squareLeft >= hitLeft+50 && squareTop == 400){
+let bounceLeft = setInterval(function(){hitLeft-=2.5*horizSpeed;if(hitLeft<=-70){hitLeft = 650;}},100);
+setTimeout(function(){clearInterval(bounceLeft);}, 500);
+}
+}
+
+//Height is 100-top, fall follows the function s = ut + 0.5at^2, where u is initial speed, s is displacement, t is time, and a is acceleration, can just pretend this is a quadratic function and solve for x(t), 0 = 0.5at^2 + ut - s,   0 = 0.5*2*t^2 - 400, 400 = t^2, t =20, value multiplied by one hundred in javascript because we are going per 10th of a second, not per second
+let falling;
+let remainingDistance;
+let rate = 100;
+function fall(height){
+if(squareTop < 370){rate = 100;}
+let initialSpeed = 0;
+let acceleration = 2;
+diving = true;
+
+height = 500-squareTop;
+console.log(height);
+if(height > 0){
+falling = setInterval(function(){initialSpeed+=acceleration;squareTop+=initialSpeed;},rate);
+}
+setTimeout(function(){clearInterval(falling);console.log(height);remainingDistance = 400-squareTop;squareTop+=remainingDistance;diving = false;},Math.sqrt((height-100)/acceleration*2)*rate);
+
+}
+setInterval(function(){console.log(squareTop);},1000)
+setInterval(function(){ctx.clearRect(0,0,700,500);redraw();},100);
+
+let jumping;
+let jumpEnd;
+document.addEventListener('keydown',function(event){
+switch(event.keyCode){
+case 38: jumping = setInterval(function(){squareTop-=30;},100);
+setTimeout(function(){clearInterval(jumping);rate = 50;fall();},100);
+break;
+case 39: moveRight();
+break;
+case 37: moveLeft();
+break;
+}
+});
+fall(500);
+
+//Working on the part that makes it acclerate left or right;
+let horizAccel = 0.5;
+let horizSpeed = 1;
+let horizInterval;
+function moveRight(){
+squareLeft+=horizSpeed;
+horizInterval = setInterval(function(){horizSpeed+=horizAccel;},100);
+if(horizSpeed >= 15){horizSpeed = 15;}
+if(squareLeft>700){squareLeft = 0;}
+
+}
+function moveLeft(){
+squareLeft-=horizSpeed;
+horizInterval = setInterval(function(){horizSpeed+=horizAccel;},100);
+if(horizSpeed >= 5){horizSpeed = 5;}
+if(squareLeft<0){squareLeft = 650;}
+}
+setInterval(function(){if(horizSpeed >= 5){horizSpeed = 5;}if(squareTop < 400 && !diving){rate = 100;fall();}},100);
+
+
+document.addEventListener('keyup',function(event){
+if(event.keyCode == 39){clearInterval(horizInterval);horizSpeed = 1;}
+});
+
+//Add teleportation ability where you click on the screen to disappear and reappear, possibly add a streak 
+
+function getMouse(event){
+let teleLeft = event.clientX;
+let teleTop = event.clientY;
+ctx.strokeStyle = 'red';
+ctx.lineWidth = 3;
+ctx.beginPath();
+ctx.moveTo(squareLeft,squareTop);
+ctx.lineTo(teleLeft,teleTop+50);
+ctx.stroke();
+ctx.beginPath();
+ctx.moveTo(squareLeft+100,squareTop);
+ctx.lineTo(teleLeft+100,teleTop+50);
+ctx.stroke();
+squareLeft = teleLeft-50;
+squareTop = teleTop-50;
+}
+
+</script>
+
+</body></html>
+
+
